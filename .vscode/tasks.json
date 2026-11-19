@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "HITMAN AI: install packages",
+      "type": "shell",
+      "command": "python -m pip install -r requirements.txt",
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "HITMAN AI: local checks",
+      "type": "shell",
+      "command": "python -m pytest -q",
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

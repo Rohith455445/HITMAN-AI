@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>HITMAN AI | Sign up</title><link rel="stylesheet" href="/static/auth.css"></head>
+<body><main class="auth-shell"><div class="brand"><span class="spark">✦</span> HITMAN <span class="accent">AI</span></div>
+<section class="card"><div class="eyebrow">DEVELOPER WORKSPACE</div><h1>Create your account</h1><p class="intro">Register with your email to create a private coding workspace. Verification is required.</p>
+<form id="authForm" autocomplete="on"><label for="username">Username</label><input id="username" name="username" autocomplete="username" placeholder="Your username" required minlength="3" maxlength="40" pattern="[a-zA-Z0-9_-]+" aria-describedby="userHelp"><small id="userHelp">3–40 letters, numbers, underscores or hyphens</small>
+<label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com"><label for="password">Password</label><div class="password-row"><input id="password" name="password" type="password" autocomplete="new-password" placeholder="At least 12 characters" required minlength="12" maxlength="200"><button id="showPass" type="button" class="reveal" aria-label="Show password">Show</button></div>
+<label for="confirm">Confirm password</label><input id="confirm" name="confirm" type="password" autocomplete="new-password" placeholder="Re-enter password" required minlength="12" maxlength="200"><div id="error" role="alert" aria-live="polite"></div><button class="submit" id="submit" type="submit">Create account</button></form>
+<p class="switch">Already have an account? <a href="/login">Sign in</a></p><p class="switch">Need another verification link? <a href="/verify-email">Verify email</a></p></section><p class="foot">Private projects · Review AI code changes · Build with HITMAN AI</p></main>
+<script src="/static/auth.js" defer></script></body></html>

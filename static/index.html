@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#111114" />
+  <meta name="description" content="HITMAN AI — private AI chat, coding, research and project-building workspace." />
+  <title>HITMAN AI | Your AI Workspace</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <div class="mobile-backdrop" id="sidebarBackdrop" hidden></div>
+    <aside class="sidebar" id="sidebar" aria-label="Navigation">
+      <div class="sidebar-top">
+        <div class="brand-lockup"><div class="brand-mark" aria-hidden="true">H</div><span>HITMAN <strong>AI</strong></span><button class="subtle-icon sidebar-close" id="sidebarClose" type="button" aria-label="Close navigation" title="Close navigation">✕</button></div>
+        <button type="button" id="newChat" class="new-chat"><span class="icon-outline" aria-hidden="true">✎</span> New chat <span class="shortcut">Ctrl K</span></button>
+        <label class="sidebar-search"><span aria-hidden="true">⌕</span><input id="chatSearch" type="search" autocomplete="off" placeholder="Search chats" aria-label="Search conversations"/><span class="key">/</span></label>
+      </div>
+      <nav class="primary-nav" aria-label="Workspaces and tools">
+        <a class="nav-item selected" href="/" aria-current="page"><span class="nav-glyph">◉</span> Chat <span class="nav-dot"></span></a>
+        <a class="nav-item" href="/workspace"><span class="nav-glyph">⌘</span> Projects &amp; code</a>
+        <button type="button" class="nav-item" id="navImages"><span class="nav-glyph">▧</span> Create images</button>
+        <button type="button" class="nav-item" id="navResearch"><span class="nav-glyph">◎</span> Web research</button>
+        <button type="button" class="nav-item" id="navMemory"><span class="nav-glyph">◈</span> Memory</button>
+      </nav>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-history-heading"><span>Your chats</span><span class="tiny-label">RECENTS</span></div>
+      <div id="threads" class="threads" aria-label="Conversation history"></div>
+      <div class="sidebar-bottom">
+        <div class="plan-note"><span class="status-led"></span><span>Uses your configured API key</span></div>
+        <div class="account-row"><div class="profile-avatar">H</div><div class="account-copy"><strong>My HITMAN workspace</strong><small>Personal account</small></div><button id="themeBtn" type="button" class="subtle-icon" aria-label="Toggle light or dark theme" title="Toggle appearance">☀</button></div>
+        <button id="logoutChat" type="button" class="logout">⇥ <span>Log out</span></button>
+      </div>
+    </aside>
+    <main class="main" id="main">
+      <header class="topbar">
+        <div class="topbar-left"><button type="button" id="menuBtn" class="top-icon mobile-menu" aria-label="Open navigation">☰</button><span class="mobile-brand">HITMAN AI</span><div class="model-picker"><label for="modeSelect" class="visually-hidden">AI tool and reasoning mode</label><select id="modeSelect" title="Choose an AI mode"><option value="standard">HITMAN AI · Chat</option><option value="reason">HITMAN AI · Reasoning</option><option value="code">HITMAN AI · Code expert</option><option value="search">HITMAN AI · Web search</option><option value="analyze">HITMAN AI · Data analysis</option><option value="agent">HITMAN AI · Agent planning</option></select><span class="chevron" aria-hidden="true">⌄</span></div></div>
+        <div class="topbar-actions"><span class="private-chip">⌑ <span>Private workspace</span></span><a href="/workspace" class="header-project-link" title="Open coding and project workspace">Developer workspace ↗</a></div>
+      </header>
+      <div class="chat-content" id="chat" role="log" aria-live="polite" aria-label="Chat messages">
+        <section class="welcome" id="welcome">
+          <div class="welcome-logo" aria-hidden="true"><span>H</span><i>✦</i></div>
+          <h1>What can I help you build?</h1>
+          <p>One place to think, create, code, research, and turn ideas into working projects.</p>
+          <div class="starter-grid">
+            <button data-prompt="Build a complete React and FastAPI application with authentication, database, and a responsive dashboard. Give me architecture and code." type="button"><span class="starter-icon code">⌘</span><span><strong>Build an application</strong><small>From idea to code</small></span><span class="starter-arrow">↗</span></button>
+            <button data-prompt="Help me debug a complex Python project. Start by asking for logs and the smallest reproduction. Explain the root cause and verification steps." type="button"><span class="starter-icon debug">⌁</span><span><strong>Debug complex code</strong><small>Analyze the root cause</small></span><span class="starter-arrow">↗</span></button>
+            <button data-prompt="Design an AI/ML model project with a dataset pipeline, training, evaluation, API, and reproducible setup." type="button"><span class="starter-icon models">◇</span><span><strong>Create an AI model</strong><small>Train, evaluate, deploy</small></span><span class="starter-arrow">↗</span></button>
+            <button data-prompt="Research recent developments in AI agents using web sources. Distinguish verified findings from uncertainty." data-mode="search" type="button"><span class="starter-icon research">◎</span><span><strong>Research a topic</strong><small>Search current sources</small></span><span class="starter-arrow">↗</span></button>
+          </div>
+        </section>
+        <div id="messages" class="messages"></div>
+        <section id="projectResult" class="project-result" hidden aria-live="polite"></section>
+      </div>
+      <div class="composer-area">
+        <div id="attachmentPreview" class="attachment-preview" hidden><span aria-hidden="true">📎</span><span id="fileName"></span><button type="button" id="clearFile" class="clear-file" aria-label="Remove attachment">✕</button></div>
+        <div class="composer-shell">
+          <form id="chatForm" class="composer">
+            <textarea id="prompt" rows="1" maxlength="20000" placeholder="Ask anything" aria-label="Message HITMAN AI"></textarea>
+            <div class="composer-actions">
+              <div class="composer-left-actions">
+                <button type="button" id="attachBtn" class="composer-icon" aria-label="Attach a file" title="Attach a file">＋</button>
+                <input id="fileInput" type="file" accept=".pdf,.txt,.md,.jpg,.jpeg,.png,.webp,.zip" hidden />
+                <div class="tool-dropdown-wrap"><button id="toolsToggle" type="button" class="tools-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="toolsMenu">☷ Tools <span aria-hidden="true">⌄</span></button>
+                  <div id="toolsMenu" class="tools-menu" hidden role="group" aria-label="AI tools">
+                    <div class="tools-heading">CREATE &amp; BUILD</div>
+                    <button id="buildBtn" type="button"><span class="tool-emoji">⌘</span><span><strong>Build project</strong><small>Generate downloadable code ZIP</small></span></button>
+                    <button id="modelBtn" type="button"><span class="tool-emoji">◇</span><span><strong>Build AI model</strong><small>Generate an ML starter project</small></span></button>
+                    <button id="imageBtn" type="button"><span class="tool-emoji">▧</span><span><strong>Generate / edit image</strong><small>Create images with your API</small></span></button>
+                    <div class="tools-heading">CODE &amp; WORK</div>
+                    <button id="debugBtn" type="button"><span class="tool-emoji">⌁</span><span><strong>Deep Debug</strong><small>Two-pass review of code and errors</small></span></button>
+                    <button id="repairBtn" type="button"><span class="tool-emoji">⚒</span><span><strong>Repair ZIP</strong><small>Patch an uploaded source archive</small></span></button>
+                    <button id="memoryBtn" type="button"><span class="tool-emoji">◈</span><span><strong>Manage memory</strong><small>Review and delete saved notes</small></span></button>
+                    <div class="tools-heading">EXPORT &amp; VOICE</div>
+                    <button id="exportBtn" type="button"><span class="tool-emoji">↓</span><span><strong>Export conversation</strong><small>Download this conversation as TXT</small></span></button>
+                    <button id="liveBtn" type="button"><span class="tool-emoji">◉</span><span><strong>Start live voice</strong><small>Realtime API (if enabled)</small></span></button>
+                  </div>
+                </div>
+                <span class="active-mode" id="activeMode">Chat</span>
+              </div>
+              <div class="composer-right-actions"><button type="button" id="voiceBtn" class="composer-icon microphone" aria-label="Voice dictation" title="Voice dictation">♫</button><button type="submit" id="send" aria-label="Send message" title="Send message">↑</button></div>
+            </div>
+          </form>
+        </div>
+        <div class="input-footnote">HITMAN AI can make mistakes. Verify important information. API features depend on your plan and keys.</div>
+      </div>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
