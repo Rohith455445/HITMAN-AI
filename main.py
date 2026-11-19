@@ -27,7 +27,11 @@ from pypdf import PdfReader
 load_dotenv()
 if os.getenv('APP_ENV')=='production':
     if os.getenv('COOKIE_SECURE') != '1': raise RuntimeError('Production requires COOKIE_SECURE=1 and HTTPS')
-    if os.getenv('EMAIL_TRANSPORT') != 'smtp': raise RuntimeError('Production requires SMTP email verification')
+    transport = os.getenv('EMAIL_TRANSPORT', '').lower()
+    if transport not in ('smtp', 'resend'):
+        raise RuntimeError('Production requires configured SMTP or HTTPS email verification')
+    if transport == 'resend' and (not os.getenv('RESEND_API_KEY') or not os.getenv('RESEND_FROM')):
+        raise RuntimeError('Production HTTPS email requires RESEND_API_KEY and RESEND_FROM')
     if not os.getenv('PUBLIC_BASE_URL','').startswith('https://'): raise RuntimeError('Production PUBLIC_BASE_URL must be HTTPS')
 ROOT = Path(__file__).parent
 DB_PATH = Path(os.getenv('DATABASE_PATH', str(ROOT / 'chats.db')))

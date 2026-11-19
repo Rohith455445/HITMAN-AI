@@ -1,9 +1,13 @@
 """Account verification, recovery, durable rate limits and audit records.
 
-This module never sends passwords or tokens to logs in production. SMTP is mandatory
-for public deployment. Local console delivery is for loopback development only.
+This module never sends passwords or tokens to logs in production.
+Public email delivery supports SMTP or Resend HTTPS API.
+Console delivery is for loopback development only.
 """
 import hashlib
+import json
+import urllib.request
+import urllib.error
 import os
 import re
 import secrets
@@ -122,8 +126,32 @@ def send_email(email, subject, text):
         # Only show tokens on local developer console; never enable on hosted machines.
         print('\n[LOCAL-DEV EMAIL] To:',email,'Subject:',subject,'\n',text,'\n')
         return
-    if transport!='smtp':
-        raise RuntimeError('EMAIL_TRANSPORT must be smtp or local-only console')
+    if transport == 'resend':
+        # Render Free blocks SMTP, but allows outgoing HTTPS requests.
+        # Never print provider responses; failures may include sensitive user details.
+        token = os.getenv('RESEND_API_KEY', '')
+        sender = os.getenv('RESEND_FROM', '')
+        if not token or not sender:
+            raise RuntimeError('RESEND_API_KEY and RESEND_FROM required')
+        payload = json.dumps({
+            'from': sender, 'to': [email], 'subject': subject, 'text': text
+        }).encode('utf-8')
+        req = urllib.request.Request(
+            'https://api.resend.com/emails', data=payload, method='POST',
+            headers={
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json',
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=12) as response:
+                if not 200 <= response.status < 300:
+                    raise RuntimeError('Resend did not accept the email request')
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError):
+            raise RuntimeError('HTTPS email delivery failed; check provider configuration and logs') from None
+        return
+    if transport != 'smtp':
+        raise RuntimeError('EMAIL_TRANSPORT must be smtp, resend, or local-only console')
     host=os.getenv('SMTP_HOST','')
     sender=os.getenv('SMTP_FROM','')
     if not host or not sender: raise RuntimeError('SMTP_HOST and SMTP_FROM required')
