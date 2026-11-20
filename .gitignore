@@ -12,12 +12,3 @@ generated_projects/
 *.pyc
 .env.*
 !.env.example
-.env
-.env.*
-!.env.example
-.venv/
-__pycache__/
-*.pyc
-*.db
-*.sqlite3
-*.log

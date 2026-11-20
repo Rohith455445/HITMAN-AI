@@ -1,0 +1,3 @@
+-r requirements.txt
+# Optional. ChatGPT subscriptions do not pay for API usage; a funded API account is required.
+openai>=2.0,<4

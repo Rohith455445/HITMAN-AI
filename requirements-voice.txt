@@ -1,0 +1,4 @@
+-r requirements.txt
+# Optional: needed only for HITMAN_PUBLIC_LIVE_VOICE=1
+# Voice availability and cost depend on the Gemini Live model and your account.
+google-genai>=1.70,<3

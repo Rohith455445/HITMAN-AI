@@ -19,13 +19,14 @@
       </div>
       <nav class="primary-nav" aria-label="Workspaces and tools">
         <a class="nav-item selected" href="/" aria-current="page"><span class="nav-glyph">◉</span> Chat <span class="nav-dot"></span></a>
-        <a class="nav-item" href="/workspace"><span class="nav-glyph">⌘</span> Projects &amp; code</a>
+        <a class="nav-item" href="/studio" id="studioNav"><span class="nav-glyph">⌘</span> Builder Studio</a>
+        <a class="nav-item" href="/workspace"><span class="nav-glyph">□</span> Private projects</a>
         <button type="button" class="nav-item" id="navImages"><span class="nav-glyph">▧</span> Create images</button>
         <button type="button" class="nav-item" id="navResearch"><span class="nav-glyph">◎</span> Web research</button>
         <button type="button" class="nav-item" id="navMemory"><span class="nav-glyph">◈</span> Memory</button>
       </nav>
       <div class="sidebar-divider"></div>
-      <div class="sidebar-history-heading"><span>Your chats</span><span class="tiny-label">RECENTS</span></div>
+      <div class="sidebar-history-heading"><span>Your chats</span><span class="tiny-label" id="historyRecents">RECENTS</span><button type="button" class="clear-guest-chats" id="clearGuestChats" hidden title="Clear local history">Clear</button></div>
       <div id="threads" class="threads" aria-label="Conversation history"></div>
       <div class="sidebar-bottom">
         <div class="plan-note"><span class="status-led"></span><span>Uses your configured API key</span></div>
@@ -35,14 +36,16 @@
     </aside>
     <main class="main" id="main">
       <header class="topbar">
-        <div class="topbar-left"><button type="button" id="menuBtn" class="top-icon mobile-menu" aria-label="Open navigation">☰</button><span class="mobile-brand">HITMAN AI</span><div class="model-picker"><label for="modeSelect" class="visually-hidden">AI tool and reasoning mode</label><select id="modeSelect" title="Choose an AI mode"><option value="standard">HITMAN AI · Chat</option><option value="reason">HITMAN AI · Reasoning</option><option value="code">HITMAN AI · Code expert</option><option value="search">HITMAN AI · Web search</option><option value="analyze">HITMAN AI · Data analysis</option><option value="agent">HITMAN AI · Agent planning</option></select><span class="chevron" aria-hidden="true">⌄</span></div></div>
-        <div class="topbar-actions"><span class="private-chip">⌑ <span>Private workspace</span></span><a href="/workspace" class="header-project-link" title="Open coding and project workspace">Developer workspace ↗</a></div>
+        <div class="topbar-left"><button type="button" id="menuBtn" class="top-icon mobile-menu" aria-label="Open navigation">☰</button><span class="mobile-brand">HITMAN AI</span><div class="model-picker"><label for="modeSelect" class="visually-hidden">AI tool and reasoning mode</label><select id="modeSelect" title="Choose an AI mode"><option value="standard">HITMAN AI · Chat</option><option value="reason">HITMAN AI · Reasoning</option><option value="pro">HITMAN AI · Pro Review (two passes)</option><option value="code">HITMAN AI · Code expert</option><option value="search">HITMAN AI · Web search</option><option value="analyze">HITMAN AI · Data analysis</option><option value="research">HITMAN AI · Deep research</option><option value="agent">HITMAN AI · Agent planning</option></select><span class="chevron" aria-hidden="true">⌄</span></div></div>
+        <div class="topbar-actions"><span class="private-chip">⌑ <span>Private workspace</span></span><a href="/studio" class="header-project-link" title="Open the project builder and code analyzer">Builder Studio ↗</a></div>
       </header>
       <div class="chat-content" id="chat" role="log" aria-live="polite" aria-label="Chat messages">
+        <div id="searchCapabilityNotice" class="demo-notice" hidden></div>
+        <div id="demoNotice" class="demo-notice" hidden>Public Gemini demo — no login required. Files and optional browser notes are sent to Gemini only when you send them. Do not include private data.</div>
         <section class="welcome" id="welcome">
           <div class="welcome-logo" aria-hidden="true"><span>H</span><i>✦</i></div>
           <h1>What can I help you build?</h1>
-          <p>One place to think, create, code, research, and turn ideas into working projects.</p>
+          <p>Ask questions in chat, or use Builder Studio to create and inspect downloadable code projects.</p>
           <div class="starter-grid">
             <button data-prompt="Build a complete React and FastAPI application with authentication, database, and a responsive dashboard. Give me architecture and code." type="button"><span class="starter-icon code">⌘</span><span><strong>Build an application</strong><small>From idea to code</small></span><span class="starter-arrow">↗</span></button>
             <button data-prompt="Help me debug a complex Python project. Start by asking for logs and the smallest reproduction. Explain the root cause and verification steps." type="button"><span class="starter-icon debug">⌁</span><span><strong>Debug complex code</strong><small>Analyze the root cause</small></span><span class="starter-arrow">↗</span></button>
@@ -68,7 +71,8 @@
                     <button id="buildBtn" type="button"><span class="tool-emoji">⌘</span><span><strong>Build project</strong><small>Generate downloadable code ZIP</small></span></button>
                     <button id="modelBtn" type="button"><span class="tool-emoji">◇</span><span><strong>Build AI model</strong><small>Generate an ML starter project</small></span></button>
                     <button id="imageBtn" type="button"><span class="tool-emoji">▧</span><span><strong>Generate / edit image</strong><small>Create images with your API</small></span></button>
-                    <div class="tools-heading">CODE &amp; WORK</div>
+                    <div class="tools-heading">RESEARCH &amp; CODE</div>
+                    <button id="researchBtn" type="button"><span class="tool-emoji">◎</span><span><strong>Deep research</strong><small>Multi-pass source-grounded report</small></span></button>
                     <button id="debugBtn" type="button"><span class="tool-emoji">⌁</span><span><strong>Deep Debug</strong><small>Two-pass review of code and errors</small></span></button>
                     <button id="repairBtn" type="button"><span class="tool-emoji">⚒</span><span><strong>Repair ZIP</strong><small>Patch an uploaded source archive</small></span></button>
                     <button id="memoryBtn" type="button"><span class="tool-emoji">◈</span><span><strong>Manage memory</strong><small>Review and delete saved notes</small></span></button>
@@ -77,16 +81,17 @@
                     <button id="liveBtn" type="button"><span class="tool-emoji">◉</span><span><strong>Start live voice</strong><small>Realtime API (if enabled)</small></span></button>
                   </div>
                 </div>
-                <span class="active-mode" id="activeMode">Chat</span>
+                <span class="active-mode" id="activeMode">Chat</span><label class="visually-hidden" for="answerStyleSelect">Answer detail</label><select id="answerStyleSelect" class="answer-style-select" title="Answer detail level"><option value="concise">Concise</option><option value="balanced" selected>Balanced</option><option value="detailed">Detailed</option></select>
               </div>
-              <div class="composer-right-actions"><button type="button" id="voiceBtn" class="composer-icon microphone" aria-label="Voice dictation" title="Voice dictation">♫</button><button type="submit" id="send" aria-label="Send message" title="Send message">↑</button></div>
+              <div class="composer-right-actions"><button type="button" id="voiceBtn" class="composer-icon microphone" aria-label="Voice dictation" title="Voice dictation">♫</button><button type="button" id="stopResponse" class="stop-response" hidden aria-label="Stop response" title="Stop current response">■ Stop</button><button type="submit" id="send" aria-label="Send message" title="Send message">↑</button></div>
             </div>
           </form>
         </div>
-        <div class="input-footnote">HITMAN AI can make mistakes. Verify important information. API features depend on your plan and keys.</div>
+        <div class="input-footnote">Pro Review checks its draft with a second AI pass (extra quota). Results still need verification. API access is billed separately.</div>
       </div>
     </main>
   </div>
   <script src="/static/app.js"></script>
+  <script src="/static/live_v7.js"></script>
 </body>
 </html>

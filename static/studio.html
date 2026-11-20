@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <meta name="description" content="HITMAN AI Builder Studio: full-stack apps, AI bots, machine learning, data science, APIs and static source analysis.">
+  <title>Builder Studio · HITMAN AI</title>
+  <link rel="stylesheet" href="/static/studio.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="mark">H</div><span>HITMAN <strong>AI</strong></span></div>
+      <a class="nav" href="/">↗ &nbsp; AI Chat</a>
+      <a class="nav selected" href="/studio">⌘ &nbsp; Builder Studio</a>
+      <div class="sidebar-bottom"><span class="dot"></span> Gemini-backed project workspace <p>Projects download to your device. Public uploads are inspected, not executed. Local Docker tests require explicit opt-in.</p></div>
+    </aside>
+    <main>
+      <header><a href="/" class="back">← Back to chat</a><span class="top-label">HITMAN AI · Builder Studio</span><span class="pill" id="connection">Checking…</span></header>
+      <div class="content">
+        <div class="eyebrow">CREATE · ANALYZE · VERIFY</div>
+        <h1>What would you like to build?</h1>
+        <p class="lead">Turn a detailed request into a downloadable code project, or inspect an existing source ZIP before you run it.</p>
+        <nav class="tabs" aria-label="Builder tools">
+          <button id="buildTab" class="active" type="button" aria-selected="true">Build project</button>
+          <button id="analyzeTab" type="button" aria-selected="false">Analyze code ZIP</button>
+        </nav>
+        <section class="pane" id="buildPane">
+          <h2>Choose a project type</h2>
+          <div class="types" id="typeButtons" role="group" aria-label="Choose project category">
+            <button class="type chosen" data-type="web_app"><span>⌘</span><strong>Full-stack app</strong><small>Frontend + backend</small></button>
+            <button class="type" data-type="ai_bot"><span>✦</span><strong>AI chatbot / agent</strong><small>Assistants and bots</small></button>
+            <button class="type" data-type="ml_model"><span>◇</span><strong>AI / ML model</strong><small>Train + evaluate</small></button>
+            <button class="type" data-type="data_science"><span>▥</span><strong>Data science</strong><small>Analysis + notebook</small></button>
+            <button class="type" data-type="api"><span>⚙</span><strong>Backend API</strong><small>Services + tests</small></button>
+            <button class="type" data-type="automation"><span>↻</span><strong>Automation</strong><small>CLI + workflows</small></button>
+            <button class="type" data-type="general"><span>▦</span><strong>Custom project</strong><small>Your own idea</small></button>
+          </div>
+          <form id="buildForm" class="form">
+            <label for="projectRequest">Project requirements <span>Required</span></label>
+            <textarea id="projectRequest" minlength="20" maxlength="2000" rows="5" required placeholder="Build a student learning assistant with Gemini, FastAPI, React, a quiz system, and a dashboard. Include a minimal working demo and setup instructions."></textarea>
+            <label for="stack">Preferred tech stack <span>Optional</span></label>
+            <input id="stack" maxlength="110" placeholder="React + FastAPI + SQLite">
+            <label for="features">Extra features <span>Comma-separated, optional</span></label>
+            <input id="features" maxlength="600" placeholder="Authentication, dashboard, unit tests">
+            <div class="info">Your ZIP includes source files, README, and a static validation report. Generated projects are <strong>not executed or trained</strong> automatically.</div>
+            <div class="actions wrap"><button type="submit" class="primary" id="buildSubmit">Generate project ZIP <span>↓</span></button><button type="button" class="secondary" id="offlineTemplateBtn" hidden>Download offline starter</button><span id="buildStatus" role="status" class="status"></span></div>
+          </form>
+          <div id="buildResult" class="result" hidden></div>
+        </section>
+        <section class="pane" id="analyzePane" hidden>
+          <h2>Review an existing project</h2>
+          <p class="muted">Upload a small ZIP of source code. Static checks are free of model requests. Gemini review sends the source to the model. Docker testing and AI repair are supported only on your local machine after explicit opt-in.</p>
+          <form id="inspectForm" class="form">
+            <label for="zipInput">Project source ZIP <span>Max 250 KB ZIP · Static: 12 files · Docker: 20 files</span></label>
+            <input id="zipInput" type="file" accept=".zip" required>
+            <label for="reviewQuestion">What needs debugging or improving?</label>
+            <textarea id="reviewQuestion" maxlength="1200" rows="3">Check Python syntax, JSON files and suspicious code, then suggest how I should test the project.</textarea>
+            <div class="actions wrap">
+              <button type="submit" class="primary" id="checkSubmit">Run static analysis</button>
+              <button type="button" id="aiReviewSubmit" class="secondary">Ask Gemini to review</button>
+              <span id="analyzeStatus" role="status" class="status"></span>
+            </div>
+          </form>
+          <div id="analyzeResult" class="result" hidden></div>
+          <div class="agent-panel" aria-label="Local Docker repair agent">
+            <h2>Local Docker Test &amp; Auto-Fix Agent <span class="agent-tag">LOCAL ONLY</span></h2>
+            <p class="muted">Run Python/JavaScript checks in a restricted Docker container, then optionally ask Gemini to fix failing source files and retest. Docker Desktop and a preloaded test image are required. Never available on public Render.</p>
+            <div class="info">Code execution is risky even with Docker. The ZIP is mounted read-only, networking is disabled, resource limits are enforced, and only built-in test recipes run. <strong>Review generated patches before using them.</strong></div>
+            <label for="agentRounds">Gemini repair attempts</label>
+            <select id="agentRounds" aria-label="Maximum repair attempts">
+              <option value="0" selected>Run checks only — no Gemini edits</option>
+              <option value="1">Up to 1 AI fix + retest</option>
+              <option value="2">Up to 2 AI fixes + retest</option>
+            </select>
+            <label class="agent-consent"><input type="checkbox" id="agentConfirm"> I own or trust this source ZIP and authorize local Docker execution. If AI repair is selected, I consent to sending this code and test logs to Gemini.</label>
+            <div class="actions wrap"><button type="button" class="secondary" id="localAgentSubmit" disabled>Run Docker tests / auto-fix</button><span id="agentStatus" class="status" role="status"></span></div>
+            <div id="agentResult" class="result" hidden></div>
+          </div>
+        </section>
+        <footer>This is a project starter and static review tool, not a replacement for executed tests, secure deployment, or proprietary ChatGPT Pro model access. Docker testing is local-only and does not establish complete correctness.</footer>
+      </div>
+    </main>
+  </div>
+  <script src="/static/studio.js"></script>
+</body>
+</html>

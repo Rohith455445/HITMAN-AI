@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
 from urllib.parse import quote
+from research_sources import safe_link
 
 import httpx
 
@@ -50,15 +51,23 @@ def _get_text(doc: dict) -> str:
     return ''.join(chunks)
 
 
-def _get_grounding_links(doc: dict) -> list[str]:
+def _get_grounding_sources(doc: dict) -> list[dict]:
+    """Grounded links are evidence only if Gemini actually supplies metadata."""
     result = []
     for candidate in doc.get('candidates') or []:
         metadata = candidate.get('groundingMetadata') or {}
         for chunk in metadata.get('groundingChunks') or []:
-            uri = (chunk.get('web') or {}).get('uri')
-            if uri and uri.startswith('https://') and uri not in result:
-                result.append(uri)
-    return result[:5]
+            web = chunk.get('web') or {}
+            uri = web.get('uri')
+            if not safe_link(uri) or any(x['url'] == uri for x in result):
+                continue
+            result.append({'url': uri, 'title': str(web.get('title') or uri)[:160],
+                           'publisher': str(web.get('title') or '')[:100], 'snippet': '', 'thumbnail': ''})
+    return result[:8]
+
+
+def _get_grounding_links(doc: dict) -> list[str]:
+    return [item['url'] for item in _get_grounding_sources(doc)]
 
 
 def _messages(input_data) -> list[dict]:
@@ -77,6 +86,12 @@ def _messages(input_data) -> list[dict]:
             for entry in source:
                 if entry.get('type') in {'text','input_text'}:
                     parts.append({'text': entry.get('text','')})
+                elif entry.get('type') == 'input_pdf':
+                    value = entry.get('data', '')
+                    if (entry.get('mime_type') != 'application/pdf' or not isinstance(value, str) or
+                            not re.fullmatch(r'[A-Za-z0-9+/=]+', value) or len(value) > 6_000_000):
+                        raise ValueError('Invalid embedded PDF data')
+                    parts.append({'inlineData': {'mimeType': 'application/pdf', 'data': value}})
                 elif entry.get('type') == 'input_image':
                     value = entry.get('image_url','')
                     match = re.fullmatch(r'data:(image/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)', value)
@@ -136,11 +151,10 @@ class _GeminiResponses:
         output = _get_text(response)
         if not output:
             raise GeminiAPIError('Gemini returned no text. The request may have been blocked or reached its output limit.')
-        if tools and tools[0].get('type') == 'web_search':
-            urls = _get_grounding_links(response)
-            if urls:
-                output += '\n\nSources:\n' + '\n'.join('- ' + url for url in urls)
-        return SimpleNamespace(status='completed', output_text=output)
+        sources = _get_grounding_sources(response)
+        if tools and tools[0].get('type') == 'web_search' and sources:
+            output += '\n\n### Sources\n' + '\n'.join('- [' + s['title'] + '](' + s['url'] + ')' for s in sources)
+        return SimpleNamespace(status='completed', output_text=output, sources=sources)
 
     def _stream(self, model, body):
         path = self.client.model_path(model, 'streamGenerateContent') + '?alt=sse'
@@ -165,10 +179,12 @@ class _GeminiResponses:
                     delta = _get_text(packet)
                     if delta:
                         yield SimpleNamespace(type='response.output_text.delta',delta=delta)
-                    for url in _get_grounding_links(packet):
-                        if url not in seen_sources: seen_sources.append(url)
+                    for source in _get_grounding_sources(packet):
+                        if source['url'] not in {s['url'] for s in seen_sources}:
+                            seen_sources.append(source)
         if seen_sources:
-            yield SimpleNamespace(type='response.output_text.delta',delta='\n\nSources:\n'+'\n'.join('- '+url for url in seen_sources))
+            yield SimpleNamespace(type='response.sources', sources=seen_sources)
+            yield SimpleNamespace(type='response.output_text.delta',delta='\n\n### Sources\n'+'\n'.join('- ['+s['title']+']('+s['url']+')' for s in seen_sources))
 
 
 class _GeminiImages:
@@ -197,7 +213,7 @@ class _GeminiImages:
             for part in (candidate.get('content') or {}).get('parts') or []:
                 inline=part.get('inlineData') or {}
                 if inline.get('data') and inline.get('mimeType','').startswith('image/'):
-                    return SimpleNamespace(data=[SimpleNamespace(b64_json=inline['data'])])
+                    return SimpleNamespace(data=[SimpleNamespace(b64_json=inline['data'], mime_type=inline.get('mimeType', 'image/png'))])
         raise GeminiAPIError('Image model did not return an image')
 
 
